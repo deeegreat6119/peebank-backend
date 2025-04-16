@@ -91,13 +91,6 @@ module.exports = async (req, res) => {
         accountNumber: toAccountNumber,
       }).session(session);
       
-      console.log('Account lookup results:', {
-        senderAccount: senderAccount ? 'Found' : 'Not found',
-        recipientAccount: recipientAccount ? 'Found' : 'Not found',
-        senderAccountNumber: fromAccountNumber,
-        recipientAccountNumber: toAccountNumber
-      });
-      
       
 
       if (!senderAccount || !recipientAccount) {
@@ -108,13 +101,6 @@ module.exports = async (req, res) => {
         });
       }
 
-      // Verify account ownership with detailed logging
-      console.log('Account ownership check:', {
-        senderAccountUser: senderAccount.userId.toString() ? senderAccount.userId.toString() : 'null',
-        requestingUser: decoded.id,
-        match: senderAccount.userId.toString() && senderAccount.userId.toString() === decoded.id.toString()
-      });
-      // console.log(senderAccount.user);
       
 
       if (!senderAccount) {
@@ -139,22 +125,7 @@ module.exports = async (req, res) => {
           }
         });
       }
-      console.log( senderAccount.userId );
-      console.log( decoded.id);
-      
-      
-      // Continue with your existing ownership check
-      // if (senderAccount.userId !== decoded.id) {
-      //   await session.abortTransaction();
-      //   return res.status(403).json({
-      //     status: "fail",
-      //     message: "Unauthorized account access",
-      //     details: {
-      //       accountOwner: senderAccount.userId,
-      //       requestingUser: decoded.id
-      //     }
-      //   });
-      // }
+  
 
       const transferAmount = Number(amount);
       if (senderAccount.balance < transferAmount) {

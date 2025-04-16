@@ -62,13 +62,12 @@ const UserSchema = new mongoose.Schema({
 });
 
 // UserSchema.pre('save', async function(next) {
-//     console.log('Pre-save hook triggered for user:', {
+//     ('Pre-save hook triggered for user:', {
 //         email: this.email,
 //         isModifiedPassword: this.isModified('password')
 //     });
     
 //     if (this.isModified('password')) {
-//         console.log('Hashing password for user:', this.email);
 //         this.password = await bcrypt.hash(this.password, 10);
 //     }
 //     next();
@@ -79,5 +78,4 @@ const UserSchema = new mongoose.Schema({
 // };
 
 const User = mongoose.model('User', UserSchema);
-console.log('User model registered:', User.modelName);
 module.exports = User;
