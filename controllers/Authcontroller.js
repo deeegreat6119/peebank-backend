@@ -180,17 +180,9 @@ exports.DashBoard = async (req, res) => {
 
     // Calculate total balance with detailed logging
     const totalBalance = user.accounts.reduce((sum, account) => {
-      console.log(`Account ${account._id} balance:`, account.balance);
       return sum + account.balance;
     }, 0);
-    console.log('Total calculated balance:', totalBalance);
     
-    // console.log('Database account balances:', accounts.map(a => ({
-    //   id: a._id,
-    //   number: a.accountNumber,
-    //   balance: a.balance
-    // })));
-    console.log(user.accounts);
     
     // Format data for frontend
     const accounts = user.accounts.map(account => ({
@@ -202,7 +194,6 @@ exports.DashBoard = async (req, res) => {
       available: account.balance, // Always use current balance
       interestRate: account.interestRate || 0
     }));
-    console.log('Formatted accounts:', accounts);
 
     // Get recent transactions from all accounts
     const recentTransactions = user.accounts
