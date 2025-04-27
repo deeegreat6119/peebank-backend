@@ -5,6 +5,7 @@ const jwt = require("jsonwebtoken");
 const bcrypt = require("bcryptjs");
 const { promisify } = require('util');
 const mongoose = require('mongoose');
+const {sendWelcomeEmail}= require('../mail')
 // const express = require('express');
 
 const signToken = (id) => {
@@ -43,7 +44,7 @@ exports.Signup = async (req, res, next) => {
     const salt = await bcrypt.genSalt();
     const hashedPassword = await bcrypt.hash(password, salt);
 
-    // Generate account number first
+    // Generating account number for user
     const accountNumber = Math.floor(1000000000 + Math.random() * 9000000000).toString();
 
     // Create user with the account embedded
@@ -63,13 +64,14 @@ exports.Signup = async (req, res, next) => {
 
     // Also create separate Account document
     const checkingAccount = new Account({
-      userId: newUser._id,  // Use newUser._id instead of User._id
+      userId: newUser._id,
       type: 'checking',
       balance: 300.00,
       accountNumber
     });
 
     await checkingAccount.save();
+    await sendWelcomeEmail(newUser.email, newUser.firstName);
 
     const token = signToken(newUser._id);
     newUser.password = undefined;
@@ -84,14 +86,6 @@ exports.Signup = async (req, res, next) => {
     });
   } catch (error) {
     console.error("Signup error:", error);
-    
-    // Handle duplicate account number error specifically
-    if (error.code === 11000 && error.keyPattern && error.keyPattern['accounts.accountNumber']) {
-      return res.status(400).json({
-        status: "fail",
-        message: "Account number conflict. Please try again.",
-      });
-    }
 
     res.status(500).json({
       status: "error",
@@ -164,7 +158,7 @@ exports.DashBoard = async (req, res) => {
     const user = await User.findById(verifyingtoken.id)
       .populate({
         path: 'accounts',
-        options: { session: null, new: true }, // Force fresh read
+        options: { session: null, new: true },
         populate: {
           path: 'transactions',
           options: { sort: { date: -1 }, limit: 5 }
@@ -189,9 +183,9 @@ exports.DashBoard = async (req, res) => {
       id: account._id,
       name: account.name || `${account.type.charAt(0).toUpperCase() + account.type.slice(1)} Account`,
       balance: account.balance,
-      number: account.accountNumber, // Show only last 4 digits
+      number: account.accountNumber,
       type: account.type,
-      available: account.balance, // Always use current balance
+      available: account.balance,
       interestRate: account.interestRate || 0
     }));
 

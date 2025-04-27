@@ -19,7 +19,7 @@ const UserSchema = new mongoose.Schema({
       match: [/^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/, 'Please fill a valid email address']
     },
     accounts: [{
-      type: { type: String, enum: ['checking', 'savings'], default: 'checking' },
+      type: { type: String, enum: ['checking'], default: 'checking' },
       balance: { type: Number, default: 0 },
       accountNumber: { 
         type: String, 
