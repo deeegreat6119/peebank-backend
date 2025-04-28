@@ -25,7 +25,7 @@ module.exports = async (req, res) => {
       });
     }
 
-    // 2. Request Validation
+    // req validation
     const { fromAccount, toAccount, amount, description } = req.body;
 
     if (!fromAccount || !toAccount || !amount) {
@@ -49,13 +49,12 @@ module.exports = async (req, res) => {
       });
     }
 
-    // 3. Start database transaction
+    //Start database transaction
     const session = await mongoose.startSession();
     session.startTransaction();
 
     try {
       // Validate account objects contain accountNumber
-      // Inside your transaction block:
       const fromAccountNumber =
         typeof fromAccount === "string"
           ? fromAccount
@@ -75,7 +74,7 @@ module.exports = async (req, res) => {
         });
       }
 
-      // Proceed with queries using fromAccountNumber/toAccountNumber
+      // Proceed with fromAccountNumber/toAccountNumber
       const senderAccount = await Account.findOne({
         $or: [
           { accountNumber: fromAccountNumber },
@@ -137,7 +136,7 @@ module.exports = async (req, res) => {
         });
       }
 
-      // 5. Execute Transfer
+      // make a  Transfer
       senderAccount.balance -= transferAmount;
       recipientAccount.balance += transferAmount;
 
@@ -146,10 +145,10 @@ module.exports = async (req, res) => {
       const totalBalance = userAccounts.reduce((sum, account) => sum + account.balance, 0);
 
       const transfer = new Transaction({
-        fromAccount: senderAccount._id,  // Use account document _id
-        toAccount: recipientAccount._id, // Use account document _id
-        fromAccountNumber: fromAccountNumber, // Store account numbers as strings
-        toAccountNumber: toAccountNumber,     // for reference
+        fromAccount: senderAccount._id,  
+        toAccount: recipientAccount._id, 
+        fromAccountNumber: fromAccountNumber, 
+        toAccountNumber: toAccountNumber,
         amount: transferAmount,
         description: description || `Transfer to ${recipientAccount.accountNumber.slice(-4)}`,
         type: "transfer",
@@ -157,13 +156,13 @@ module.exports = async (req, res) => {
         user: decoded.id,
       });
 
-      // 6. Save all changes
+      // Save all changes
       await senderAccount.save({ session });
       await recipientAccount.save({ session });
       await transfer.save({ session });
       await session.commitTransaction();
 
-      // 7. Format response with updated balances
+      // Format response with updated balances
       const updatedUser = await User.findById(decoded.id)
         .populate({
           path: 'accounts',
@@ -174,7 +173,7 @@ module.exports = async (req, res) => {
         });
       
       const updatedTotalBalance = updatedUser.accounts.reduce((sum, account) => sum + account.balance, 0);
-
+      console.log(updatedUser)
       res.status(201).json({
         status: "success",
         message: "Transfer completed successfully", 

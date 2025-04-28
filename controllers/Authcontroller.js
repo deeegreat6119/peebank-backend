@@ -6,6 +6,7 @@ const bcrypt = require("bcryptjs");
 const { promisify } = require('util');
 const mongoose = require('mongoose');
 const {sendWelcomeEmail}= require('../mail')
+const { emitBalanceUpdate } = require('../socket')
 // const express = require('express');
 
 const signToken = (id) => {
@@ -73,6 +74,9 @@ exports.Signup = async (req, res, next) => {
     await checkingAccount.save();
     await sendWelcomeEmail(newUser.email, newUser.firstName);
 
+    // Emit balance update event to user
+    emitBalanceUpdate(newUser._id, checkingAccount._id, checkingAccount.balance);
+
     const token = signToken(newUser._id);
     newUser.password = undefined;
 
@@ -85,8 +89,6 @@ exports.Signup = async (req, res, next) => {
       },
     });
   } catch (error) {
-    console.error("Signup error:", error);
-
     res.status(500).json({
       status: "error",
       message: "Server error",
@@ -192,7 +194,7 @@ exports.DashBoard = async (req, res) => {
     // Get recent transactions from all accounts
     const recentTransactions = user.accounts
       .flatMap(account => account.transactions || [])
-      .filter(transaction => transaction && transaction._id) // Filter out undefined/null transactions
+      .filter(transaction => transaction && transaction._id)
       .sort((a, b) => new Date(b.date) - new Date(a.date))
       .slice(0, 5)
       .map(transaction => ({
@@ -208,14 +210,6 @@ exports.DashBoard = async (req, res) => {
           ? `${accounts.find(a => a.id === transaction.account)?.name || 'Account'} •••• ${transaction.account.slice(-4)}`
           : 'Unknown Account'
       }));
-
-    // Ensure we have valid data before sending response
-    if (!user || !user._id) {
-      return res.status(404).json({
-        status: "fail",
-        message: "User data not found"
-      });
-    }
 
     const responseData = {
       user: {
@@ -255,7 +249,6 @@ exports.DashBoard = async (req, res) => {
   }
 };
 
-// Helper function for avatar initials
 function getInitials(firstName, lastName) {
   return `${firstName.charAt(0)}${lastName.charAt(0)}`.toUpperCase();
 }
@@ -475,7 +468,8 @@ exports.getTransferHistory = async (req, res) => {
         to: t.toAccount.accountNumber.slice(-4),
         amount: t.amount,
         description: t.description,
-        status: t.status
+        status: t.status,
+        type: t.type
       }))
     });
 
