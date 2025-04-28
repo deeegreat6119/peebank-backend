@@ -1,6 +1,7 @@
 const app = require('./app.js');
 const http = require('http');
 const { Server } = require('socket.io');
+require("dotenv").config();
 
 const PORT = process.env.PORT || 5000;
 
