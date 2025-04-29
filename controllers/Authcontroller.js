@@ -496,7 +496,7 @@ exports.getProfile = async (req, res) => {
 //     const { page = 1, limit = 10, accountId } = req.query;
 //     const skip = (page - 1) * limit;
 
-//     const filter = { type: { $in: ["transfer", "deposit", "withdrawal"] } };
+//     const filter = { user: decoded.id, type: { $in: ["transfer", "deposit", "withdrawal"] } };
 //     if (accountId)
 //       filter.$or = [{ fromAccount: accountId }, { toAccount: accountId }];
 
@@ -641,7 +641,7 @@ exports.createDeposit = async (req, res) => {
   }
 };
 
-// Then modify your getTransferHistory to get all transaction types
+//getTransferHistory to get all transaction types
 exports.getTransactionHistory = async (req, res) => {
   try {
     const token = req.headers.authorization?.split(" ")[1];
@@ -650,26 +650,37 @@ exports.getTransactionHistory = async (req, res) => {
     }
 
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    const { page = 1, limit = 10, accountId } = req.query;
-    const skip = (page - 1) * limit;
+    console.log(decoded);
+
+    const account = await Account.findOne({userId:decoded.id})
+    console.log(account);
+    
+    
+    // const { page = 1, limit = 10, accountId } = req.query;
+    // const skip = (page - 1) * limit;
 
     // Include all transaction types
     const filter = { 
-      user: decoded.id,
-      type: { $in: ["transfer", "deposit", "withdrawal"] } 
+      // user: decoded.id,
+      type: { $in: ["transfer", "deposit", "withdrawal"] },
+      $or : [
+        { 
+          fromAccount: account._id },
+        { toAccount:  account._id}
+      ] 
     };
 
-    if (accountId) {
-      filter.$or = [
-        { fromAccount: accountId },
-        { toAccount: accountId }
-      ];
-    }
+    // if (accountId) {
+      // filter.$or = [
+      //   { fromAccount: account._id },
+      //   { toAccount:  account._id}
+      // ];
+    // }
 
     const transactions = await Transaction.find(filter)
       .sort({ createdAt: -1 })
-      .skip(skip)
-      .limit(parseInt(limit))
+      // .skip(skip)
+      // .limit(parseInt(limit))
       .populate("fromAccount toAccount", "accountNumber name type");
 
     const total = await Transaction.countDocuments(filter);
