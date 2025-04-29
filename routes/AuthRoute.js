@@ -10,7 +10,9 @@ router.post('/signup', authController.Signup);
 router.post('/signin', authController.Signin);
 router.get('/dashboard', authController.DashBoard);
 router.post('/transfer', fixedTransfer);
-router.get('/transactions', authController.getTransferHistory);
+router.post('/deposit', authController.createDeposit)
+router.get('/transactions', authController.getTransactionHistory);
+// router.post('/transactions', authController.handleTransactions);
 router.post('/profile', authMiddleware, authController.getProfile);
 router.patch('/settings', authMiddleware, authController.getsetting);
 
