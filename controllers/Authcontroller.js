@@ -212,18 +212,7 @@ exports.DashBoard = async (req, res) => {
       type: account.type,
       available: account.balance,
       interestRate: account.interestRate || 0,
-    }));
-
-    // Format data for frontend
-    // const accounts = user.accounts.map(account => ({
-    //   id: account._id,
-    //   name: account.name || `${account.type.charAt(0).toUpperCase() + account.type.slice(1)} Account`,
-    //   balance: account.balance,
-    //   number: account.accountNumber,
-    //   type: account.type,
-    //   available: account.balance,
-    //   interestRate: account.interestRate || 0
-    // }));
+    }));;
 
     // Get recent transactions from all accounts
     const formattedTransactions = recentTransactions.map(transaction => ({
@@ -235,31 +224,10 @@ exports.DashBoard = async (req, res) => {
       amount: transaction.amount || 0,
       status: transaction.status || 'completed',
       merchant: transaction.merchant || 'Unknown',
-      account: transaction.account 
+      account: transaction.account
         ? `${transaction.account.type} •••• ${transaction.account.accountNumber.slice(-4)}`
         : 'Unknown Account'
     }));
-    // const recentTransactions = user.accounts
-    //   .flatMap((account) => account.transactions || [])
-    //   .filter((transaction) => transaction && transaction._id)
-    //   .sort((a, b) => new Date(b.date) - new Date(a.date))
-    //   .slice(0, 5)
-    //   .map((transaction) => ({
-    //     id: transaction._id,
-    //     date: transaction.date,
-    //     description: transaction.description || "N/A",
-    //     category: transaction.category || "Other",
-    //     type: transaction.type || "transaction",
-    //     amount: transaction.amount || 0,
-    //     status: transaction.status || "completed",
-    //     merchant: transaction.merchant || "Unknown",
-    //     account: transaction.account
-    //       ? `${
-    //           accounts.find((a) => a.id === transaction.account)?.name ||
-    //           "Account"
-    //         } •••• ${transaction.account.slice(-4)}`
-    //       : "Unknown Account",
-    //   }));
 
     const responseData = {
       user: {
@@ -484,54 +452,6 @@ exports.getProfile = async (req, res) => {
   }
 };
 
-// Additional Controller Methods
-// exports.getTransferHistory = async (req, res) => {
-//   try {
-//     const token = req.headers.authorization?.split(" ")[1];
-//     if (!token)
-//       return res.status(401).json({ status: "fail", message: "Unauthorized" });
-
-//     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-
-//     const { page = 1, limit = 10, accountId } = req.query;
-//     const skip = (page - 1) * limit;
-
-//     const filter = { user: decoded.id, type: { $in: ["transfer", "deposit", "withdrawal"] } };
-//     if (accountId)
-//       filter.$or = [{ fromAccount: accountId }, { toAccount: accountId }];
-
-//     const transfers = await Transaction.find(filter)
-//       .sort({ createdAt: -1 })
-//       .skip(skip)
-//       .limit(parseInt(limit))
-//       .populate("fromAccount toAccount", "accountNumber name");
-
-//     const total = await Transaction.countDocuments(filter);
-
-//     return res.status(200).json({
-//       status: "success",
-//       results: transfers.length,
-//       total,
-//       data: transfers.map((t) => ({
-//         id: t._id,
-//         date: t.createdAt,
-//         from: t.fromAccount ? t.fromAccount.accountNumber.slice(-4) : null,
-//         to: t.toAccount ? t.toAccount.accountNumber.slice(-4) : null,
-//         amount: t.amount,
-//         description: t.description,
-//         status: t.status,
-//         type: t.type,
-//       })),
-//     });
-//   } catch (error) {
-//     console.error("Transfer history error:", error);
-//     return res.status(500).json({
-//       status: "error",
-//       message: "Failed to fetch transfers",
-//     });
-//   }
-// };
-// Add this new deposit-specific controller
 exports.createDeposit = async (req, res) => {
   try {
     const token = req.headers.authorization?.split(" ")[1];

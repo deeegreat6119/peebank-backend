@@ -18,8 +18,6 @@ module.exports = async (req, res) => {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
     const user = await User.findById(decoded.id).populate("accounts");
     const userId = decoded.id
-    console.log(userId);
-    console.log(user);
     
     
 
